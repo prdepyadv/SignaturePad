@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <title>Signature Pad</title>
+    <style>
+        .signature-pad {
+            border: 1px rgba(145, 164, 190, 0.4) solid;width:300px;height:100px;background-color: white;border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div id="my-app" style="display: flex;justify-content: center;">
+        <div class="row" style="justify-content: center">
+            <div class="col-sm-6 col-md-6">
+                <div class="form-group">
+                    <label for="signature_data">Sign below</label>
+                    <canvas id="signature-pad" class="signature-pad" name="signature_pad"
+                            width=300 height=100></canvas>
+                    <input type="text" name="signature_data" id="signature_data" style="display: none;"/>
+
+                    <button type="button" id="create-sign"
+                            onclick="createSign();">Create</button>
+                    <button type="button" id="draw">Draw</button>
+                    <button type="button" id="erase">Erase</button>
+                    <button type="button" id="clear">Clear</button>
+                    <button type="button"
+                            title="Signature image should not be more than 300 x 100."
+                            onclick="$('#imageLoader').click();">Upload</button>
+                    <input type="file" id="imageLoader" style="display: none;" name="imageLoader"/>
+                    <button type="button" onclick="$('#create-sign-dialog').modal('show');">
+                        <i class="fa fa-cog" aria-hidden="true"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="justify-content: center">
+        <div class="col-sm-2 col-md-2">
+            <button type="button" onclick="submitForm();">Finish form</button>
+        </div>
+    </div>
+    <div class="modal" id="create-sign-dialog" role="dialog" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="border-bottom: 1px solid #e5e5e5;">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" id="request-modal-title">Signature Settings</h4>
+                </div>
+                <div class="modal-body form-group fld_margin">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="sign-font">Change Style: </label>
+                                <select id="sign-font" onchange="createSign();" style="width: 100%;">
+                                    <option value="Arial">Arial</option>
+                                    <option value="Verdana">Verdana</option>
+                                    <option value="Tahoma">Tahoma</option>
+                                    <option value="Trebuchet MS">Trebuchet MS</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Georgia">Georgia</option>
+                                    <option value="Garamond">Garamond</option>
+                                    <option value="MarkerFelt-Thin, Comic Sans MS">Comic Sans MS</option>
+                                    <option value="Courier">Courier New</option>
+                                    <option value="Brush Script MT">Brush Script MT</option>
+                                    <option value="Sofia">Sofia</option>
+                                    <option value="Palatino">Palatino</option>
+                                    <option value="Papyrus">Papyrus</option>
+                                    <option value="Lucida Sans Typewriter">Lucida Sans Typewriter</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="signature-example-text">Preview: </label>
+                                <h4 id="signature-example-text" style='font-family: "Arial Black";'>
+                                    The quick brown fox jumps over the lazy dog</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <button type="button" id="cancel" class="btn btn-secondary pull-right"
+                                        data-dismiss="modal" aria-label="Close" style="margin-right: 5px;"
+                                        onclick="$('#create-sign-dialog').modal('hide');">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="js/signature_pad.min.js"></script>
+    <script>
+        let canvas = document.getElementById('signature-pad');
+        let signaturePad = new SignaturePad(canvas, {
+            backgroundColor: '#ffffff' // necessary for saving image as JPEG; can be removed is only saving as PNG or SVG
+        });
+        let ctx = canvas.getContext('2d');
+        let clientName = 'Pradeep Yadav';
+        let isSignatureTextSet=0;
+
+        function resizeCanvas() {
+            let data;
+            const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+            if(!signaturePad.isEmpty() || isSignatureTextSet){
+                data = signaturePad.toDataURL();
+            }
+            canvas.width = (canvas.offsetWidth ? canvas.offsetWidth : 300) * ratio;
+            canvas.height = (canvas.offsetHeight ? canvas.offsetHeight : 100) * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear();
+            if(data){
+                signaturePad.fromDataURL(data);
+            } else {
+                isSignatureTextSet=0;
+            }
+        }
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        document.getElementById('clear').addEventListener('click', function () {
+            isSignatureTextSet=0;
+            signaturePad.clear();
+            $('#imageLoader').val('');
+        });
+        document.getElementById('draw').addEventListener('click', function () {
+            ctx.globalCompositeOperation = 'source-over'; // default value
+        });
+        document.getElementById('erase').addEventListener('click', function () {
+            ctx.globalCompositeOperation = 'destination-out';
+        });
+        let imageLoader = document.getElementById('imageLoader');
+        imageLoader.addEventListener('change', handleImage, false);
+        function handleImage(e){
+            let reader = new FileReader();
+            reader.onload = function(event){
+                let img = new Image();
+                img.onload = function(){
+                    /*canvas.width = img.width;
+                    canvas.height = img.height;*/
+                    ctx.drawImage(img,0,0);
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+            $('#imageLoader').val('');
+        }
+
+        $('#create-sign-dialog').on('show.bs.modal', function (e) {
+            createSign();
+        });
+        function createSign(){
+            let fontSize= 60, fontFace = $('#sign-font').val();
+            if(!fontFace){
+                return false;
+            }
+            $('#signature-example-text').css('font-family', fontFace);
+
+            setTimeout(function () {
+                $('#clear').click();$('#draw').click();
+                ctx.fillStyle = 'rgb(0,0,0)';
+                do{
+                    fontSize--;
+                    ctx.font= fontSize+"px "+fontFace;
+                } while(ctx.measureText(clientName).width>canvas.width)
+                ctx.fillText(clientName, 0, 60);
+                isSignatureTextSet=1;
+            }, 300);
+            return true;
+        }
+
+        function submitForm(){
+            setTimeout(function () {
+                let formData, signatureUrl, timeNow;
+                if (!signaturePad.isEmpty() || isSignatureTextSet) {
+                    timeNow = new Date().toISOString();
+                    ctx.fillStyle = 'rgb(0,0,0)';ctx.font = "15px Helvetica";
+                    ctx.fillText('Signed on: ' + timeNow, 0, canvas.height - 5);
+
+                    signatureUrl = signaturePad.toDataURL('image/jpeg');
+                    $('#signature_data').val(signatureUrl);
+                    signaturePad.toDataURL();
+                } else {
+                    return alert("Please provide a signature first.");
+                }
+            }, 300);
+        }
+    </script>
+</body>
+</html>
