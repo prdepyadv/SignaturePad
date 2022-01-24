@@ -1,7 +1,4 @@
 $(window).on("unload", function(e) {
-    $('#otp').val('');
-    $('#card_country_code').val('');
-    $('#card_state_id').val('');
     $('#imageLoader-error').text('').hide();
     $('#clear').click();
 });
@@ -137,7 +134,9 @@ function submitForm(){
             setTimeout(() => {
                 $('#imageLoader-error').text('').hide();
             }, 10000);
+            return false;
         }
         addTimeStamp(1);
+        alert('completed.....');
     }, 300);
 }
