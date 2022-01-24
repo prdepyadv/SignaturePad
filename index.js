@@ -108,10 +108,6 @@ function addTimeStamp(time = false){
         ':' + String(today.getMinutes()).padStart(2, '0')
         + ':' + String(today.getSeconds()).padStart(2, '0') +
         ' ' + Intl.DateTimeFormat().resolvedOptions().timeZone;
-    ctx.fillStyle = 'white';
-    ctx.fillRect((canvas.width/2) - (ctx.measureText(signedAtText).width/2), canvas.height - 30,
-        ctx.measureText(signedAtText).width, ctx.measureText('M').width + 10);
-    ctx.fillStyle = 'rgb(0,0,0)';
     if(time){
         signedAtText = 'Digitally signed on: ' + signedAt;
     } else {
@@ -121,6 +117,10 @@ function addTimeStamp(time = false){
         fontSize--;
         ctx.font= fontSize+"px "+fontFace;
     } while(ctx.measureText(signedAtText).width>canvas.width)
+    ctx.fillStyle = 'white';
+    ctx.fillRect((canvas.width/2) - (ctx.measureText(signedAtText).width/2), canvas.height - 30,
+        ctx.measureText(signedAtText).width, ctx.measureText('M').width + 10);
+    ctx.fillStyle = 'rgb(0,0,0)';
     ctx.fillText(signedAtText, (canvas.width/2) - (ctx.measureText(signedAtText).width / 2), canvas.height - 15);
     $('#signature_data').val(signaturePad.toDataURL('image/jpeg'));$('#signed_at').val(signedAtText);
     signaturePad.toDataURL();
